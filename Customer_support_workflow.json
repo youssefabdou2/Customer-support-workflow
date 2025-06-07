@@ -1,0 +1,275 @@
+{
+  "name": "Customer support workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        -80
+      ],
+      "id": "6e830a99-21e6-4e09-99f4-23c031700d2a",
+      "name": "Gmail Trigger"
+    },
+    {
+      "parameters": {
+        "categories": {
+          "categories": [
+            {
+              "category": "Customer support",
+              "description": "An email that is related to helping  out a customer. they may be asking questions about our policies or questions about our products  or services"
+            },
+            {
+              "category": "other",
+              "description": "any email that not customer support-related"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        -80
+      ],
+      "id": "438c15a3-90f9-4740-8f96-fa13f4cfe71d",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        160
+      ],
+      "id": "c8f96d8b-cf26-4130-ae11-2053d4c34b7c",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "PZQEADTG9hz25qWL",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "###email conetnt from input",
+        "options": {
+          "systemMessage": "# overview\nYou are a customer support agent for tech haven. your job is to respond to incoming emails with relevant informaion using your knowleding tools.\n\n## instructions \nyour output should be friendly and use emojis\n sign off as Mr. Helpful from tech haven solutions\n## output\n output only the body content of the email"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -180
+      ],
+      "id": "9c2cd3cd-43d7-4f41-b6d3-3efbd7e7799f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        600,
+        40
+      ],
+      "id": "ed35db21-d387-4ba3-925f-74540b5819d6",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "PZQEADTG9hz25qWL",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "CustomerSupportDB",
+        "toolDescription": "Call this tool to access FAQ information",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "demon8nrag",
+          "mode": "list",
+          "cachedResultName": "demon8nrag"
+        },
+        "options": {
+          "pineconeNamespace": "FAQ"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        100
+      ],
+      "id": "f5553c32-456d-4e7a-9f51-92118b7e2d2f",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "dBZB1aq6kWrxxyaL",
+          "name": "MyAccount n8nrag"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        820,
+        320
+      ],
+      "id": "6358631f-ad14-4ce9-bac6-bd06100452fd",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "PZQEADTG9hz25qWL",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "## email id from input",
+        "emailType": "text",
+        "message": "## out massage fro input",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        920,
+        -180
+      ],
+      "id": "4d83be05-48ba-41eb-9253-3a3595ce145b",
+      "name": "Gmail",
+      "webhookId": "3ad1233a-7093-467f-8f37-4d500c806c3b"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ecfac197-c80b-4569-b80b-94f25606411d",
+  "meta": {
+    "instanceId": "7b88cda1cab936a267e01acaf9dac04556c1e3c1b73e60362cdf8a38f173102a"
+  },
+  "id": "khGCBGN7Vc2YoKC8",
+  "tags": []
+}
